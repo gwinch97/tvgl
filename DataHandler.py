@@ -46,11 +46,11 @@ class DataHandler(object):
         self.inverse_sigmas.append(network)
         if inversion:
             sigma = np.linalg.inv(network)
-            print np.linalg.eigvals(sigma)
+            print(np.linalg.eigvals(sigma))
             self.sigmas.append(sigma)
-            print sigma
-            print np.shape(sigma)
-            print network
+            print(sigma)
+            print(np.shape(sigma))
+            print(network)
 
     """ Generates a data file (.csv) from networks previously defined in
         self.sigmas (covariance matrix) """
@@ -222,20 +222,3 @@ class DataHandler(object):
                 except ValueError:
                     f.write(",%s" % dev)
             f.write("\n")
-
-
-if __name__ == "__main__" and len(sys.argv) % 2 == 1:
-
-    # Input arguments need to be pairwise.
-    # First item of the pair is the network file.
-    # Second item of the pair is number of datapoints
-    # to create from the given network.
-    # Arbitrary number of pair can be inputted.
-
-    dh = DataHandler()
-    data_counts = []
-    for i in range(1, len(sys.argv), 2):
-        dh.read_network(sys.argv[i])
-        data_counts.append(int(sys.argv[i+1]))
-    if len(data_counts) > 0:
-        dh.generate_real_data(data_counts)

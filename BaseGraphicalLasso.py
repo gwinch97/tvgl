@@ -4,40 +4,35 @@ import time
 from DataHandler import DataHandler
 
 
-class BaseGraphicalLasso(object):
+class BaseGraphicalLasso:
 
-    # The parent class for Graphical Lasso
-    # problems. Most of the methods and
-    # attributes are defined and initialized here.
-
-    np.set_printoptions(precision=3)
-
-    """ Initialize attributes, read data """
-    def __init__(self, filename, blocks, lambd, beta,
-                 processes, penalty_function="group_lasso",
-                 datecolumn=True):
+    def __init__(self, filename, blocks, lambd, beta, processes, penalty_function="group_lasso", datecolumn=True):
         self.datecolumn = datecolumn
         self.processes = processes
         self.blocks = blocks
         self.penalty_function = penalty_function
+        # Initialization updated for Python 3.8
         self.dimension = None
-        self.emp_cov_mat = [0] * self.blocks
-        self.real_thetas = [0] * self.blocks
-        if self.datecolumn:
-            self.blockdates = [0] * self.blocks
+        self.emp_cov_mat = [None] * self.blocks
+        self.real_thetas = [None] * self.blocks
+        self.blockdates = [None] * self.blocks if self.datecolumn else []
         self.read_data(filename)
         self.rho = self.get_rho()
         self.max_step = 0.1
         self.lambd = lambd
         self.beta = beta
-        self.thetas = [np.ones((self.dimension, self.dimension))] * self.blocks
-        self.z0s = [np.ones((self.dimension, self.dimension))] * self.blocks
-        self.z1s = [np.ones((self.dimension, self.dimension))] * self.blocks
-        self.z2s = [np.ones((self.dimension, self.dimension))] * self.blocks
-        self.u0s = [np.zeros((self.dimension, self.dimension))] * self.blocks
-        self.u1s = [np.zeros((self.dimension, self.dimension))] * self.blocks
-        self.u2s = [np.zeros((self.dimension, self.dimension))] * self.blocks
-        self.eta = float(self.obs)/float(3*self.rho)
+        self.initialize_matrices()
+
+    def initialize_matrices(self):
+        # Efficient matrix initialization
+        self.thetas = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
+        self.z0s = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
+        self.z1s = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
+        self.z2s = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
+        self.u0s = [np.zeros((self.dimension, self.dimension)) for _ in range(self.blocks)]
+        self.u1s = [np.zeros((self.dimension, self.dimension)) for _ in range(self.blocks)]
+        self.u2s = [np.zeros((self.dimension, self.dimension)) for _ in range(self.blocks)]
+        self.eta = float(self.obs) / (3 * self.rho)
         self.e = 1e-5
         self.roundup = 1
 
@@ -121,26 +116,26 @@ class BaseGraphicalLasso(object):
         start_time = time.time()
         while self.iteration < max_iter and stopping_criteria is False:
             if self.iteration % 500 == 0 or self.iteration == 1:
-                print "\n*** Iteration %s ***" % self.iteration
-                print "Time passed: {0:.3g}s".format(time.time() - start_time)
-                print "Rho: %s" % self.rho
-                print "Eta: %s" % self.eta
-                print "Step: {0:.3f}".format(1/(2*self.eta))
+                print("\n*** Iteration %s ***" % self.iteration)
+                print("Time passed: {0:.3g}s".format(time.time() - start_time))
+                print("Rho: %s" % self.rho)
+                print("Eta: %s" % self.eta)
+                print("Step: {0:.3f}".format(1/(2*self.eta)))
             if self.iteration % 500 == 0 or self.iteration == 1:
                 s_time = time.time()
             self.theta_update()
             if self.iteration % 500 == 0 or self.iteration == 1:
-                print "Theta update: {0:.3g}s".format(time.time() - s_time)
+                print("Theta update: {0:.3g}s".format(time.time() - s_time))
             if self.iteration % 500 == 0 or self.iteration == 1:
                 s_time = time.time()
             self.z_update()
             if self.iteration % 500 == 0 or self.iteration == 1:
-                print "Z-update: {0:.3g}s".format(time.time() - s_time)
+                print("Z-update: {0:.3g}s".format(time.time() - s_time))
             if self.iteration % 500 == 0 or self.iteration == 1:
                 s_time = time.time()
             self.u_update()
             if self.iteration % 500 == 0 or self.iteration == 1:
-                print "U-update: {0:.3g}s".format(time.time() - s_time)
+                print("U-update: {0:.3g}s".format(time.time() - s_time))
             """ Check stopping criteria """
             if self.iteration % 500 == 0 or self.iteration == 1:
                 s_time = time.time()
@@ -178,9 +173,9 @@ class BaseGraphicalLasso(object):
         self.only_true_false_edges()
         self.terminate_processes()
         if stopping_criteria:
-            print "\nIterations to complete: %s" % self.iteration
+            print("\nIterations to complete: %s" % self.iteration)
         else:
-            print "\nMax iterations (%s) reached" % max_iter
+            print("\nMax iterations (%s) reached" % max_iter)
 
     """ Converts values in the thetas into boolean values,
         informing only the existence of an edge without weight. """
