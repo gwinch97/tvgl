@@ -1,38 +1,40 @@
-
 import numpy as np
 import time
 from DataHandler import DataHandler
+class BaseGraphicalLasso(object):
 
+    # The parent class for Graphical Lasso
+    # problems. Most of the methods and
+    # attributes are defined and initialized here.
 
-class BaseGraphicalLasso:
+    np.set_printoptions(precision=3)
 
-    def __init__(self, filename, blocks, lambd, beta, processes, penalty_function="group_lasso", datecolumn=True):
+    """ Initialize attributes, read data """
+    def __init__(self, filename, blocks, lambd, beta,
+                 processes, penalty_function="group_lasso",
+                 datecolumn=True):
         self.datecolumn = datecolumn
         self.processes = processes
         self.blocks = blocks
         self.penalty_function = penalty_function
-        # Initialization updated for Python 3.8
         self.dimension = None
-        self.emp_cov_mat = [None] * self.blocks
-        self.real_thetas = [None] * self.blocks
-        self.blockdates = [None] * self.blocks if self.datecolumn else []
+        self.emp_cov_mat = [0] * self.blocks
+        self.real_thetas = [0] * self.blocks
+        if self.datecolumn:
+            self.blockdates = [0] * self.blocks
         self.read_data(filename)
         self.rho = self.get_rho()
         self.max_step = 0.1
         self.lambd = lambd
         self.beta = beta
-        self.initialize_matrices()
-
-    def initialize_matrices(self):
-        # Efficient matrix initialization
-        self.thetas = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
-        self.z0s = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
-        self.z1s = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
-        self.z2s = [np.ones((self.dimension, self.dimension)) for _ in range(self.blocks)]
-        self.u0s = [np.zeros((self.dimension, self.dimension)) for _ in range(self.blocks)]
-        self.u1s = [np.zeros((self.dimension, self.dimension)) for _ in range(self.blocks)]
-        self.u2s = [np.zeros((self.dimension, self.dimension)) for _ in range(self.blocks)]
-        self.eta = float(self.obs) / (3 * self.rho)
+        self.thetas = [np.ones((self.dimension, self.dimension))] * self.blocks
+        self.z0s = [np.ones((self.dimension, self.dimension))] * self.blocks
+        self.z1s = [np.ones((self.dimension, self.dimension))] * self.blocks
+        self.z2s = [np.ones((self.dimension, self.dimension))] * self.blocks
+        self.u0s = [np.zeros((self.dimension, self.dimension))] * self.blocks
+        self.u1s = [np.zeros((self.dimension, self.dimension))] * self.blocks
+        self.u2s = [np.zeros((self.dimension, self.dimension))] * self.blocks
+        self.eta = float(self.obs)/float(3*self.rho)
         self.e = 1e-5
         self.roundup = 1
 
@@ -96,7 +98,8 @@ class BaseGraphicalLasso:
             filename = network_info.split(":")[0].strip("#").strip()
             datacount = network_info.split(":")[1].strip()
             sub_blocks = int(datacount)/self.obs
-            for i in range(sub_blocks):
+            print(sub_blocks)
+            for i in range(int(sub_blocks)):
                 dh.read_network(filename, inversion=False)
         self.real_thetas = dh.inverse_sigmas
         dh = None
